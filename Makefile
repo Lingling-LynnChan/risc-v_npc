@@ -15,5 +15,12 @@ sim:
 dump:
 	riscv64-linux-gnu-objdump -d -M no-aliases verilator/c_obj/prog
 
+pull:
+	git pull origin main
+
+push:
+	git add .
+	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
+	git push origin main
 all:
 	@echo "please use 'make build' or 'make sim' to build or simulate the project."
