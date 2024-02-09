@@ -25,35 +25,35 @@ module NPC (  //New Processor Core
     input         global_rst,  //全局复位
     input  [31:0] inst,        //指令
     output [31:0] pc           //程序计数器
-  );
+);
   wire        reg_we;  //寄存器组写使能
   wire        reg_rea;  //寄存器组读使能a
   wire        reg_reb;  //寄存器组读使能b
   wire [ 4:0] reg_addrw;  //寄存器组写选择信号
   wire [ 4:0] reg_addra;  //寄存器组读选择信号a
   wire [ 4:0] reg_addrb;  //寄存器组读选择信号b
-  wire [31:0] reg_dinw;  //寄存器组写数据
+  wire [31:0] reg_dinw = 0;  //寄存器组写数据
   wire [31:0] reg_douta;  //寄存器组输出信号a
   wire [31:0] reg_doutb;  //寄存器组输出信号
   //通用寄存器组
   Regs #(
-         .WIDTH     (32),  //每个寄存器位宽为32
-         .ADDR_WIDTH(5),   //lg32
-         .NR_REGS   (32),  //32个寄存器
-         .RESET_VAL (0)
-       ) Regs (
-         .clk  (clk),
-         .rst  (global_rst),
-         .we   (reg_we),
-         .rea  (reg_rea),
-         .reb  (reg_reb),
-         .addrw(reg_addrw),
-         .addra(reg_addra),
-         .addrb(reg_addrb),
-         .dinw (reg_dinw),
-         .douta(reg_douta),
-         .doutb(reg_doutb)
-       );
+      .WIDTH     (32),  //每个寄存器位宽为32
+      .ADDR_WIDTH(5),   //lg32
+      .NR_REGS   (32),  //32个寄存器
+      .RESET_VAL (0)
+  ) Regs (
+      .clk  (clk),
+      .rst  (global_rst),
+      .we   (reg_we),
+      .rea  (reg_rea),
+      .reb  (reg_reb),
+      .addrw(reg_addrw),
+      .addra(reg_addra),
+      .addrb(reg_addrb),
+      .dinw (reg_dinw),
+      .douta(reg_douta),
+      .doutb(reg_doutb)
+  );
   //指令解码
   wire [6:0] opcode = inst[6:0];  //指令的操作码
   wire [4:0] rd = inst[11:7];  //R、I、U、J指令的目的寄存器
@@ -75,16 +75,16 @@ module NPC (  //New Processor Core
   wire fmt_j = (opcode == 7'b1101111);  //J指令判断
   //程序计数器
   wire is_jmp = fmt_j || fmt_b;  //是否跳转
-  wire target_pc=0;  //TODO 跳转目标地址
+  wire [31:0] target_pc = 0;  //TODO 跳转目标地址
   PC #(
-       .START_ADDR(0)
-     ) PC_inst (
-       .clk(clk),
-       .global_rst(global_rst),
-       .set_pc(is_jmp),
-       .new_pc(target_pc),
-       .pc(pc)
-     );
+      .START_ADDR(32'h80000000)
+  ) PC_inst (
+      .clk(clk),
+      .global_rst(global_rst),
+      .set_pc(is_jmp),
+      .new_pc(target_pc),
+      .pc(pc)
+  );
   //参数设置和提取
   assign reg_rea   = (fmt_r || fmt_i || fmt_s || fmt_b) ? 1 : 0;  //读使能a
   assign reg_addra = reg_rea ? rs1 : 0;  //读选择信号a

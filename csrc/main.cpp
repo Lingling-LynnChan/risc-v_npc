@@ -1,6 +1,6 @@
 #include <cstdint>
 #include <iostream>
-#ifndef _IN_VSCODE
+#ifndef _FAKE_VSCODE_LINT
 #include <verilated.h>
 #include "VNPC.h" // 替换为顶层模块的文件名
 #else
@@ -14,20 +14,20 @@ public:
 };
 struct VNPC
 {
-  int clk;
-  int global_rst;
-  int inst;
-  int pc;
+  uint32_t clk;
+  uint32_t global_rst;
+  uint32_t inst;
+  uint32_t pc;
   void eval() {}
   void final() {}
 };
 #endif
 void init_pmem(int argc, char **argv);
-int pmem_read(int pc);
-char *i10to2(int i);
-void analyze(int inst);
-int32_t ram[256 * 1024 / 4]; // 256k
-int32_t code_len;
+uint32_t pmem_read(uint32_t pc);
+std::string i10to2(uint32_t i);
+std::string analyze(uint32_t inst);
+uint32_t ram[256 * 1024 / 4]; // 256k
+uint32_t code_len;
 int main(int argc, char **argv)
 {
   Verilated::commandArgs(argc, argv);
@@ -50,10 +50,15 @@ int main(int argc, char **argv)
     // 模拟时钟上升沿
     top->clk = 1;
     top->inst = pmem_read(top->pc);
-    std::cout << "pc: " << top->pc << std::endl;
-    std::cout << "inst: " << i10to2(top->inst) << std::endl;
+    auto now_pc = top->pc;
+    auto inst_bin = i10to2(top->inst);
+    auto inst_asm = analyze(top->inst);
     top->eval();
-    analyze(top->inst);
+    std::cout << now_pc << ": " << inst_asm << " " << inst_bin << std::endl;
+    if (inst_asm == "ebreak")
+    {
+      break;
+    }
     // 模拟时钟下降沿
     top->clk = 0;
     top->eval();
@@ -64,14 +69,14 @@ int main(int argc, char **argv)
   delete top;
   return 0;
 }
-int pmem_read(int pc)
+uint32_t pmem_read(uint32_t pc)
 {
   if (pc % 4 != 0)
   {
     std::cout << "Unaligned pc:" << pc << std::endl;
     exit(1);
   }
-  return ram[pc / 4];
+  return ram[(pc - 0x80000000) / 4];
 }
 void init_pmem(int argc, char **argv)
 {
@@ -100,9 +105,9 @@ void init_pmem(int argc, char **argv)
   }
   std::cout << "load binary is ok\n";
 }
-char *i10to2(int i)
+std::string i10to2(uint32_t i)
 {
-  static char bin[33];
+  char bin[33];
   bin[0] = '\0';
   int j = 0;
   for (int k = 31; k >= 0; k--)
@@ -110,17 +115,17 @@ char *i10to2(int i)
     bin[j++] = ((i >> k) & 1) + '0';
   }
   bin[j] = '\0';
-  return bin;
+  return std::string(bin);
 }
-void analyze(int inst)
+std::string analyze(uint32_t inst)
 {
   if (inst == 0x00100073)
   {
-    std::cout << "ebreak\n";
-    exit(0);
+    return "ebreak";
   }
   if ((inst & 0x7f) == 0x13 && ((inst >> 12) & 0x7) == 0x0)
   {
-    std::cout << "addi\n";
+    return "addi";
   }
+  return "unknown inst";
 }
