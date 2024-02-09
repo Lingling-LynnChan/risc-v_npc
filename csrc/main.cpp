@@ -2,15 +2,27 @@
 #include <iostream>
 #ifndef _FAKE_VSCODE_LINT
 #include <verilated.h>
+#include <verilated_vcd_c.h>
 #include "VNPC.h" // 替换为顶层模块的文件名
 #else
 // 欺骗代码提示，假装存在这些类
+typedef volatile uint64_t vluint64_t;
 class Verilated
 {
 public:
   Verilated() = default;
   ~Verilated() = default;
   static void commandArgs(int argc, char **argv) {}
+  static void traceEverOn(bool b) {}
+};
+class VerilatedVcdC
+{
+public:
+  VerilatedVcdC() = default;
+  ~VerilatedVcdC() = default;
+  void open(const char *filename) {}
+  void close() {}
+  void dump(vluint64_t i) {}
 };
 struct VNPC
 {
@@ -20,31 +32,38 @@ struct VNPC
   uint32_t pc;
   void eval() {}
   void final() {}
+  void trace(VerilatedVcdC *vcd, int i) {}
 };
 #endif
-void init_pmem(int argc, char **argv);
+void init(int argc, char **argv);
 uint32_t pmem_read(uint32_t pc);
 std::string i10to2(uint32_t i);
 std::string analyze(uint32_t inst);
-uint32_t ram[256 * 1024 / 4]; // 256k
-uint32_t code_len;
+volatile uint32_t ram[256 * 1024 / 4]; // 256k
+volatile uint32_t code_len;
+vluint64_t main_time = 0; // 仿真时间变量
 int main(int argc, char **argv)
 {
-  Verilated::commandArgs(argc, argv);
-  init_pmem(argc, argv);
+  init(argc, argv);
   // 实例化顶层模块
-  VNPC *top = new VNPC; // 替换为顶层模块的类名
+  VNPC *top = new VNPC;
+  VerilatedVcdC *vcd = new VerilatedVcdC;
+  top->trace(vcd, 999);
+  vcd->open("verilator/trace.vcd");
+  // 仿真开始
   top->global_rst = 1;
   top->clk = 0;
   top->eval();
+  vcd->dump(main_time++);
   top->clk = 1;
   top->eval();
+  vcd->dump(main_time++);
   top->clk = 0;
   top->global_rst = 0;
   top->eval();
-  // 初始化模拟时钟
-  // 时钟周期数
-  std::cout << "==========cycle start==========\n";
+  vcd->dump(main_time++);
+  // 周期开始
+  std::cout << "====================cycle start=========================\n";
   for (int i = 0; i < code_len; ++i)
   {
     // 模拟时钟上升沿
@@ -54,17 +73,24 @@ int main(int argc, char **argv)
     auto inst_bin = i10to2(top->inst);
     auto inst_asm = analyze(top->inst);
     top->eval();
-    std::cout << now_pc << ": " << inst_asm << " " << inst_bin << std::endl;
-    if (inst_asm == "ebreak")
-    {
-      break;
-    }
+    vcd->dump(main_time++);
     // 模拟时钟下降沿
     top->clk = 0;
     top->eval();
+    vcd->dump(main_time++);
+    // 当周期行为
+    {
+      std::cout << now_pc << ": " << inst_asm << " " << inst_bin << std::endl;
+      if (inst_asm == "ebreak")
+      {
+        break;
+      }
+    }
   }
-  std::cout << "===========cycle end===========\n";
+  // 周期结束
+  std::cout << "====================cycle end===========================\n";
   // 释放资源
+  vcd->close();
   top->final();
   delete top;
   return 0;
@@ -78,8 +104,10 @@ uint32_t pmem_read(uint32_t pc)
   }
   return ram[(pc - 0x80000000) / 4];
 }
-void init_pmem(int argc, char **argv)
+void init(int argc, char **argv)
 {
+  Verilated::commandArgs(argc, argv);
+  Verilated::traceEverOn(true);
   if (argc < 2)
   {
     std::cout << "Please input code file.\n"
@@ -96,7 +124,7 @@ void init_pmem(int argc, char **argv)
   fseek(fp, 0, SEEK_END);
   code_len = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  fread(ram, 1, code_len, fp);
+  fread((void *)ram, 1, code_len, fp);
   code_len /= 4;
   fclose(fp);
   for (int i = 0; i < code_len; i++)

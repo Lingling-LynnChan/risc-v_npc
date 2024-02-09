@@ -40,9 +40,23 @@ module Regs #(
 );
   wire [WIDTH-1:0] douts[NR_REGS];  //单个寄存器输出
   wire [NR_REGS*WIDTH-1:0] out_lines;  //总输出线
+
+  begin
+    Reg #(  //zero寄存器
+        .WIDTH(WIDTH),
+        .RESET_VAL(0)
+    ) inst_zero (
+        .clk (clk),
+        .rst (rst),
+        .din (dinw),
+        .wen (0),
+        .dout(douts[0])
+    );
+    assign out_lines[(WIDTH-1)-:WIDTH] = douts[0];
+  end
   genvar i;
   generate
-    for (i = 0; i < NR_REGS; i = i + 1) begin : Reg_Gen
+    for (i = 1; i < NR_REGS; i = i + 1) begin : Reg_Gen
       Reg #(
           .WIDTH(WIDTH),
           .RESET_VAL(RESET_VAL)
