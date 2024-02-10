@@ -12,7 +12,7 @@ build:
 	mkdir ./verilator
 	mkdir ./verilator/c_obj
 	@echo "====================compile start======================="
-	riscv64-linux-gnu-gcc -march=rv32im -mabi=ilp32 -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o ./verilator/c_obj/prog ./csrc/prog.c
+	riscv64-linux-gnu-gcc -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o ./verilator/c_obj/prog ./csrc/prog.c
 	riscv64-linux-gnu-objcopy -j .text -O binary ./verilator/c_obj/prog ./verilator/c_obj/prog.bin
 	@echo "====================verilator start====================="
 	verilator -Wall --trace --top-module ${TOP_MODULE} -cc ${V_SOURCES} --exe csrc/main.cpp --Mdir verilator --Wno-UNUSEDSIGNAL

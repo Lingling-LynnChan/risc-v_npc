@@ -1,5 +1,10 @@
 // 这是一个朴素的测试程序
+#define asmv asm volatile
+// ===============================
+#define ebreak() asmv("ebreak")
+#define addi(rd, rs1, imm) asmv("addi " #rd ", " #rs1 ", " #imm)
+
 void _start() {
-  asm volatile("addi a0, x0, %0" ::"i"(12));
-  asm volatile("ebreak");
+  addi(a1, x0, 12);
+  ebreak();
 }
