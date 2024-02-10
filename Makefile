@@ -1,6 +1,6 @@
-TOP_MODULE := Adder4
+TOP_MODULE := NPC
 
-SIM_FILE := sim.cpp
+SIM_FILE := main.cpp
 
 V_HEADNAME := V$(TOP_MODULE)
 
