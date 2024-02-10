@@ -26,6 +26,13 @@ module NPC (  //New Processor Core
     input  [31:0] inst,        //指令
     output [31:0] pc           //程序计数器
 );
+  wire init_rst;  //初始化复位
+  Boot Boot_inst (
+      .clk(clk),
+      .global_rst(global_rst),
+      .init_rst(init_rst)
+  );
+  wire        rst = global_rst | init_rst;
   wire        reg_we;  //寄存器组写使能
   wire        reg_rea;  //寄存器组读使能a
   wire        reg_reb;  //寄存器组读使能b
@@ -43,7 +50,7 @@ module NPC (  //New Processor Core
       .RESET_VAL (0)
   ) Regs (
       .clk  (clk),
-      .rst  (global_rst),
+      .rst  (rst),
       .we   (reg_we),
       .rea  (reg_rea),
       .reb  (reg_reb),
@@ -80,7 +87,7 @@ module NPC (  //New Processor Core
       .START_ADDR(32'h80000000)
   ) PC_inst (
       .clk(clk),
-      .global_rst(global_rst),
+      .global_rst(rst),
       .set_pc(is_jmp),
       .new_pc(target_pc),
       .pc(pc)
