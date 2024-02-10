@@ -76,8 +76,10 @@ int main(int argc, char **argv) {
     vcd->dump(main_time++);
     // 当周期行为
     {
-      std::cout << now_pc << ": " << inst_asm << " " << inst_bin << std::endl;
+      printf("0x%x", now_pc);
+      std::cout << ": " << inst_asm << " " << inst_bin << std::endl;
       if (inst_asm == "ebreak") {
+        vcd->dump(main_time++);
         break;
       }
     }
