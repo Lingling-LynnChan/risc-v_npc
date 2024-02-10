@@ -1,4 +1,6 @@
-TOP_MODULE := NPC
+TOP_MODULE := Adder4
+
+SIM_FILE := sim.cpp
 
 V_HEADNAME := V$(TOP_MODULE)
 
@@ -15,14 +17,14 @@ build:
 	riscv64-linux-gnu-gcc -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o ./verilator/c_obj/prog ./csrc/prog.c
 	riscv64-linux-gnu-objcopy -j .text -O binary ./verilator/c_obj/prog ./verilator/c_obj/prog.bin
 	@echo "====================verilator start====================="
-	verilator -Wall --trace --top-module ${TOP_MODULE} -cc ${V_SOURCES} --exe csrc/main.cpp --Mdir verilator --Wno-UNUSEDSIGNAL
+	verilator -Wall --trace --top-module ${TOP_MODULE} -cc ${V_SOURCES} --exe csrc/${SIM_FILE} --Mdir verilator --Wno-UNUSEDSIGNAL
 	@awk '/^CXXFLAGS =/ {print $0 " -Wno-unused-result"; found=1} !/^CXXFLAGS =/ {print $0} END {if (!found) print "CXXFLAGS = -Wno-unused-result"}' verilator/$(V_MAKEFILE) > verilator/$(V_MAKEFILE).tmp && mv verilator/$(V_MAKEFILE).tmp verilator/$(V_MAKEFILE)
 
 sim:
 	@echo "====================sim start==========================="
 	make -j -C verilator -f ${V_MAKEFILE} ${V_HEADNAME}
 	@echo "====================simulation start===================="
-	verilator/VNPC ./verilator/c_obj/prog.bin
+	verilator/${V_HEADNAME} ./verilator/c_obj/prog.bin
 	@echo "====================waveform start======================"
 	gtkwave verilator/trace.vcd
 

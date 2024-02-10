@@ -41,6 +41,8 @@ volatile uint32_t ram[256 * 1024 / 4];  // 256k
 volatile uint32_t code_len;
 vluint64_t main_time = 0;  // 仿真时间变量
 int main(int argc, char **argv) {
+  Verilated::commandArgs(argc, argv);
+  Verilated::traceEverOn(true);
   init(argc, argv);
   // 实例化顶层模块
   VNPC *top = new VNPC;
@@ -100,8 +102,6 @@ uint32_t pmem_read(uint32_t pc) {
   return ram[(pc - 0x80000000) / 4];
 }
 void init(int argc, char **argv) {
-  Verilated::commandArgs(argc, argv);
-  Verilated::traceEverOn(true);
   if (argc < 2) {
     std::cout << "Please input code file.\n" << std::endl;
     exit(1);

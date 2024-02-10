@@ -103,8 +103,7 @@ module NPC (  //New Processor Core
   assign reg_addrw = (fmt_r || fmt_i || fmt_u || fmt_j) ? rd : 0;  //写选择信号
   //ALU计算
   //addi
-  //0000001000100000000000001
-  //[6-0]1101111
+  
 
 
 endmodule
