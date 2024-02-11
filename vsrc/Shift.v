@@ -23,11 +23,12 @@
 module Shift #(
     WIDTH = 1
 ) (
-    input [WIDTH-1:0] ins,
-    input [WIDTH-1:0] inw,
+    input en,
+    input [WIDTH-1:0] in1,
+    input [WIDTH-1:0] in2,
     input is_left,
     input is_logical,
     output [WIDTH-1:0] out
 );
-  assign out = is_left ? (inw << ins) : is_logical ? (inw >> ins) : inw >>> ins;
+  assign out = en ? (is_left ? (in1 << in2) : is_logical ? (in1 >> in2) : (in1 >>> in2)) : 0;
 endmodule

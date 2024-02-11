@@ -103,38 +103,11 @@ module NPC (  //New Processor Core
   assign reg_addrw = (fmt_r || fmt_i || fmt_u || fmt_j) ? rd : 0;  //写选择信号
   wire [31:0] reg_dinw_alu;
   //ALU计算
-  wire [ 3:0] alu_out;
-  MuxMap #(  //bug: 为什么输入 0x0, 0x00 输出 1(本该是0)
-      .NR_KEY  (8),
-      .KEY_LEN (3),
-      .DATA_LEN(4)
-  ) MuxMap_inst (
-      .out(alu_out),
-      .key(funct3),
-      .lut({
-        3'h0,
-        4'd0,  //add
-        3'h4,
-        4'd1,  //xor
-        3'h6,
-        4'd2,  //or
-        3'h7,
-        4'd3,  //and
-        3'h1,
-        4'd4,  //sll
-        3'h5,
-        4'd5,  //srx
-        3'h2,
-        4'd6,  //slt
-        3'h3,
-        4'd7  //sltu
-      })
-  );
   ALU32 ALU32_inst (
       .in1(reg_douta),
       .in2(fmt_i ? {20'b0, imm_i} : reg_doutb),
+      .funct3(funct3),
       .funct7(fmt_r ? funct7 : 7'h00),
-      .sel(alu_out),
       .out(reg_dinw_alu)
   );
   //如果是计算有关的，则把计算单元输出的数据连接到写入信号
