@@ -26,7 +26,7 @@ sim:
 	@echo "====================simulation start===================="
 	verilator/${V_HEADNAME} ./verilator/c_obj/prog.bin
 	@echo "====================waveform start======================"
-	gtkwave verilator/trace.vcd
+	gtkwave verilator/trace.vcd >/dev/null 2>&1 &
 
 dump:
 	@echo "====================dump start=========================="
