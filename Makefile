@@ -38,14 +38,14 @@ pull:
 	@echo "====================pull start=========================="
 	git pull origin main
 
-push: copy
+push: sync
 	@echo "====================push start=========================="
 	git add .
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
 
-copy:
-	@echo "====================copy start=========================="
+sync:
+	@echo "====================sync start=========================="
 	find ${XILINX_PATH} -type f -delete
 	cp vsrc/* ${XILINX_PATH}
 
