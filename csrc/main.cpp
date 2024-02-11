@@ -28,6 +28,7 @@ struct VNPC {
   uint32_t global_rst;
   uint32_t inst;
   uint32_t pc;
+  uint32_t ebreak;
   void eval() {}
   void final() {}
   void trace(VerilatedVcdC *vcd, int i) {}
@@ -35,7 +36,7 @@ struct VNPC {
 #endif
 void init(int argc, char **argv);
 uint32_t pmem_read(uint32_t pc);
-std::string i10to2(uint32_t i);
+std::string i10to16(uint32_t i);
 std::string analyze(uint32_t inst);
 volatile uint32_t ram[256 * 1024 / 4];  // 256k
 volatile uint32_t code_len;
@@ -71,7 +72,7 @@ int main(int argc, char **argv) {
     top->clk = 1;
     top->inst = pmem_read(top->pc);
     auto now_pc = top->pc;
-    auto inst_bin = i10to2(top->inst);
+    auto inst_str = i10to16(top->inst);
     auto inst_asm = analyze(top->inst);
     top->eval();
     vcd->dump(main_time);
@@ -84,8 +85,8 @@ int main(int argc, char **argv) {
     // 当周期行为
     {
       printf("0x%x", now_pc);
-      std::cout << ": " << inst_asm << " " << inst_bin << std::endl;
-      if (inst_asm == "ebreak") {
+      std::cout << ": " << inst_asm << " " << inst_str << std::endl;
+      if (top->ebreak) {
         vcd->dump(main_time);
         main_time += 2;
         break;
@@ -125,18 +126,13 @@ void init(int argc, char **argv) {
   code_len /= 4;
   fclose(fp);
   for (int i = 0; i < code_len; i++) {
-    std::cout << "ram[" << i << "]: " << i10to2(ram[i]) << std::endl;
+    std::cout << "ram[" << i << "]: " << i10to16(ram[i]) << std::endl;
   }
   std::cout << "load binary is ok\n";
 }
-std::string i10to2(uint32_t i) {
-  char bin[33];
-  bin[0] = '\0';
-  int j = 0;
-  for (int k = 31; k >= 0; k--) {
-    bin[j++] = ((i >> k) & 1) + '0';
-  }
-  bin[j] = '\0';
+std::string i10to16(uint32_t i) {
+  char bin[33] = {0};
+  sprintf(bin, "0x%08x", i);
   return std::string(bin);
 }
 std::string analyze(uint32_t inst) {

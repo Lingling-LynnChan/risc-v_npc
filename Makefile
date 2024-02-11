@@ -2,6 +2,10 @@ TOP_MODULE  := NPC
 
 SIM_FILE    := main.cpp
 
+USE_MARCH   := rv32i
+
+USE_MABI    := ilp32
+
 V_HEADNAME  := V$(TOP_MODULE)
 
 V_MAKEFILE  := $(V_HEADNAME).mk
@@ -10,13 +14,15 @@ V_SOURCES   := $(shell find vsrc -name "*.v")
 
 XILINX_PATH := "/mnt/c/Users/Lingl/Documents/FPGA_Projects/NPC/NPC.srcs/sources_1/new/"
 
-build:
-	@echo "====================build start========================="
+clear:
+	@echo "====================clear start========================="
 	rm -rf ./build
 	mkdir ./build
 	mkdir ./build/c_obj
-	@echo "====================compile start======================="
-	riscv64-linux-gnu-gcc -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o build/c_obj/prog csrc/prog.c
+
+build: clear
+	@echo "====================build start========================="
+	riscv64-linux-gnu-gcc -march=${USE_MARCH} -mabi=${USE_MABI} -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o build/c_obj/prog csrc/prog.c
 	riscv64-linux-gnu-objcopy -j .text -O binary build/c_obj/prog build/c_obj/prog.bin
 	@echo "====================verilator start====================="
 	verilator -Wall --trace --top-module ${TOP_MODULE} -cc ${V_SOURCES} --exe csrc/${SIM_FILE} --Mdir build --Wno-UNUSEDSIGNAL

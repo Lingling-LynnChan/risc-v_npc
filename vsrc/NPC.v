@@ -24,7 +24,8 @@ module NPC (  //New Processor Core
     input         clk,         //时钟信号
     input         global_rst,  //全局复位
     input  [31:0] inst,        //指令
-    output [31:0] pc           //程序计数器
+    output [31:0] pc,          //程序计数器
+    output        ebreak       //ebreak
 );
   wire init_rst;  //初始化复位
   Boot Boot_inst (
@@ -75,20 +76,21 @@ module NPC (  //New Processor Core
   wire [20:0] imm_j = {inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};  //J指令的立即数
   //指令判断
   wire fmt_r = (opcode == 7'b0110011);  //R指令判断
-  wire fmt_i_alu = (opcode == 7'b0010011);
-  wire fmt_i_load = (opcode == 7'b0000011);
-  wire fmt_i_jmp = (opcode == 7'b1100111);
-  wire fmt_i = fmt_i_alu || fmt_i_load || fmt_i_jmp;  //I指令判断
+  wire fmt_i_alu = (opcode == 7'b0010011);  //I指令运算组
+  wire fmt_i_load = (opcode == 7'b0000011);  //I指令加载组
+  wire fmt_i_jalr = (opcode == 7'b1100111);  //I指令返回组
+  wire fmt_i_env = (opcode == 7'b1110011);  //I指令环境组
+  wire fmt_i = (fmt_i_alu || fmt_i_load || fmt_i_jalr || fmt_i_env);  //I指令判断
   wire fmt_s = (opcode == 7'b0100011);  //S指令判断
   wire fmt_b = (opcode == 7'b1100011);  //B指令判断
-  wire is_lui = (opcode == 7'b0110111);
-  wire is_auipc = (opcode == 7'b0010111);
-  wire fmt_u = is_lui || is_auipc;  //U指令判断
+  wire is_lui = (opcode == 7'b0110111);  //扩展赋值
+  wire is_auipc = (opcode == 7'b0010111);  //扩展偏移赋值
+  wire fmt_u = (is_lui || is_auipc);  //U指令判断
   wire fmt_j = (opcode == 7'b1101111);  //J指令判断
+  wire is_jalxx = (fmt_j || fmt_i_jalr);
   //程序计数器
-  wire is_jmp = fmt_j || fmt_b;  //是否跳转
-  wire imm_jmp = 0;  //跳转所用的立即数
-  wire [31:0] target_pc = 0;  //TODO 跳转目标地址
+  wire is_jmp = (is_jalxx || fmt_b);  //以PC为结果
+  wire [31:0] target_pc;  //跳转目标地址
   PC #(
       .START_ADDR(32'h80000000)
   ) PC_inst (
@@ -99,29 +101,69 @@ module NPC (  //New Processor Core
       .pc(pc)
   );
   //参数设置和提取
-  assign reg_rea   = (fmt_r || fmt_i || fmt_s || fmt_b) ? 1 : 0;  //读使能a
+  assign reg_rea = (fmt_u || fmt_j) ? 0 : 1;  //读使能a
+  assign reg_reb = (fmt_i || fmt_u || fmt_j) ? 0 : 1;  //读使能b
+  assign reg_we = (fmt_s || fmt_b) ? 0 : 1;  //写使能
   assign reg_addra = reg_rea ? rs1 : 0;  //读选择信号a
-  wire [31:0] rsa_data = reg_rea ? reg_douta : fmt_u ? imm_u : fmt_j ? {11'b0,imm_j} : 0;  //源数据a
-  assign reg_reb   = (fmt_r || fmt_s || fmt_b) ? 1 : 0;  //读使能b
   assign reg_addrb = reg_reb ? rs2 : 0;  //读选择信号b
-  wire [31:0] rsb_data = reg_reb ? reg_doutb : fmt_i ? {20'b0, imm_i} : 0;  //源数据b
-  assign reg_we = (fmt_r || fmt_i || fmt_u || fmt_j) ? 1 : 0;  //写使能
-  assign reg_addrw = (fmt_r || fmt_i || fmt_u || fmt_j) ? rd : 0;  //写选择信号
-  wire [31:0] alu_dinw;
+  assign reg_addrw = reg_we ? rd : 0;  //写选择信号
+  wire [31:0] alu_out;
   //ALU计算
-  wire [ 2:0] alu_funct3 = funct3;
-  wire [31:0] alu_in1 = is_jmp ? pc : reg_douta;
-  wire [31:0] alu_in2 = fmt_i ? {20'b0, imm_i} : reg_doutb;
+  wire [31:0] alu_in1;
+  wire [ 1:0] alu_in1_sel = {is_lui, fmt_b};
+  MuxKey #(
+      .NR_KEY  (3),
+      .KEY_LEN (2),
+      .DATA_LEN(32)
+  ) MuxKey_alu_in1 (
+      .out(alu_in1),
+      .key(alu_in1_sel),
+      .inlines({
+        {32'b0},  //lui
+        {pc},  //fmt_b
+        {reg_douta}  //others and default
+      })
+  );
+  wire [31:0] alu_in2;
+  wire [ 5:0] alu_in2_sel = {fmt_i, fmt_s, fmt_j, fmt_u, fmt_b, fmt_r};
+  MuxMap #(
+      .NR_KEY  (6),
+      .KEY_LEN (6),
+      .DATA_LEN(32)
+  ) MuxMap_alu_in2 (
+      .out(alu_in2),
+      .key(alu_in2_sel),
+      .lut({
+        6'b100_000,  //i
+        {20'b0, imm_i},
+        6'b010_000,  //s
+        {20'b0, imm_s},
+        6'b001_000,  //j
+        {11'b0, imm_j},
+        6'b000_100,  //u
+        {imm_u},
+        6'b000_010,  //b
+        {19'b0, imm_b},
+        6'b000_001,  //r
+        {reg_doutb}
+      })
+  );
+  wire [2:0] alu_funct3 = funct3;
+  wire [6:0] alu_funct7 = fmt_r ? funct7 : 7'h00;
   ALU32 ALU32_inst (
-      .in1(alu_in1),
-      .in2(alu_in2),
+      .in1(fmt_i_env ? 0 : alu_in1),
+      .in2(fmt_i_env ? 0 : alu_in2),
       .funct3(alu_funct3),
-      .funct7(fmt_r ? funct7 : 7'h00),
-      .out(alu_dinw)
+      .funct7(alu_funct7),
+      .out(alu_out)
   );
   //如果是计算有关的，则把计算单元输出的数据连接到写入信号
-  //TODO 还有U和J没有处理
-  assign reg_dinw = (fmt_r || fmt_i) ? alu_dinw : 0;
+  wire [31:0] ram_in = 0;  //TODO 连接内存输入
+  assign reg_dinw = (fmt_r || fmt_i_alu) ? alu_out : fmt_i_load ? ram_in : 0;
+  //写入PC的分类讨论和特例
+  assign target_pc = is_jmp ? alu_out : (is_jalxx ? pc + 4 : 0);
+  //ebreak
+  assign ebreak = fmt_i_env && funct3 == 3'h0 && imm_i == 12'h001;
 
 
 

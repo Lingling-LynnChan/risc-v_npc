@@ -30,5 +30,5 @@ module Adder #(
     output [WIDTH-1:0] sout,  //求和
     output cout  //进位
 );
-  assign {cout, sout} = en ? (in1 + in2 + c0) : 0;
+  assign {cout, sout} = en ? (in1 + in2 + {32'b0, c0}) : 0;
 endmodule
