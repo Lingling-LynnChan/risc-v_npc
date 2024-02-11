@@ -23,7 +23,7 @@
 module ALU32 (  //算术逻辑单元
     input [31:0] in1,  //输入1
     input [31:0] in2,  //输入2
-    input [6:0] funct7,
+    input [6:0] funct7,  //子选择信号
     input [3:0] sel,  //运算选择
     output [31:0] out  //运算结果
 );
@@ -48,23 +48,27 @@ i|sel|运算
       .key    (sel),
       .inlines(outNto1)
   );
-  //加减法
+  //0:加减法
   wire is_sub = funct7 == 7'h20;
   wire [31:0] in2_as = is_sub ? ~in2 : in2;
   wire cout;  //进位被忽略
-  Adder32 Adder32_inst (
+  Adder #(
+      .WIDTH(32)
+  ) Adder32_inst (
       .c0  (is_sub),
       .in1 (in1),
       .in2 (in2_as),
       .sout(outNto1[32*1-1:0]),
       .cout(cout)
   );
-  //异或
+  //1:异或
   assign outNto1[32*2-1:32*1] = in1 ^ in2;
-  //或
+  //2:或
   assign outNto1[32*3-1:32*2] = in1 | in2;
-  //与
+  //3:与
   assign outNto1[32*4-1:32*3] = in1 & in2;
+  //4:逻辑左移
+
   //TODO
   assign outNto1[32*8-1:32*4] = 0;
 

@@ -5,7 +5,7 @@
 //
 // Create Date:
 // Design Name:
-// Module Name: ShiftLogical
+// Module Name: Shift
 // Project Name:
 // Target Devices:
 // Tool Versions:
@@ -20,11 +20,14 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module ShiftLogical (
-    input  [31:0] in1,  //输入1
-    input  [31:0] in2,  //输入2
-    input  [ 1:0] sel,  //运算选择
-    output [31:0] out   //运算结果
+module Shift #(
+    WIDTH = 1
+) (
+    input [WIDTH-1:0] ins,
+    input [WIDTH-1:0] inw,
+    input is_left,
+    input is_logical,
+    output [WIDTH-1:0] out
 );
-
+  assign out = is_left ? (inw << ins) : is_logical ? (inw >> ins) : inw >>> ins;
 endmodule
