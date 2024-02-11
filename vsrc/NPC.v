@@ -75,13 +75,19 @@ module NPC (  //New Processor Core
   wire [20:0] imm_j = {inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};  //J指令的立即数
   //指令判断
   wire fmt_r = (opcode == 7'b0110011);  //R指令判断
-  wire fmt_i = (opcode == 7'b0010011) || (opcode == 7'b0000011) || (opcode == 7'b1100111);  //I指令判断
+  wire fmt_i_alu = (opcode == 7'b0010011);
+  wire fmt_i_load = (opcode == 7'b0000011);
+  wire fmt_i_jmp = (opcode == 7'b1100111);
+  wire fmt_i = fmt_i_alu || fmt_i_load || fmt_i_jmp;  //I指令判断
   wire fmt_s = (opcode == 7'b0100011);  //S指令判断
   wire fmt_b = (opcode == 7'b1100011);  //B指令判断
-  wire fmt_u = (opcode == 7'b0110111) || (opcode == 7'b0010111);  //U指令判断
+  wire is_lui = (opcode == 7'b0110111);
+  wire is_auipc = (opcode == 7'b0010111);
+  wire fmt_u = is_lui || is_auipc;  //U指令判断
   wire fmt_j = (opcode == 7'b1101111);  //J指令判断
   //程序计数器
   wire is_jmp = fmt_j || fmt_b;  //是否跳转
+  wire imm_jmp = 0;  //跳转所用的立即数
   wire [31:0] target_pc = 0;  //TODO 跳转目标地址
   PC #(
       .START_ADDR(32'h80000000)
@@ -101,18 +107,21 @@ module NPC (  //New Processor Core
   wire [31:0] rsb_data = reg_reb ? reg_doutb : fmt_i ? {20'b0, imm_i} : 0;  //源数据b
   assign reg_we = (fmt_r || fmt_i || fmt_u || fmt_j) ? 1 : 0;  //写使能
   assign reg_addrw = (fmt_r || fmt_i || fmt_u || fmt_j) ? rd : 0;  //写选择信号
-  wire [31:0] reg_dinw_alu;
+  wire [31:0] alu_dinw;
   //ALU计算
+  wire [ 2:0] alu_funct3 = funct3;
+  wire [31:0] alu_in1 = is_jmp ? pc : reg_douta;
+  wire [31:0] alu_in2 = fmt_i ? {20'b0, imm_i} : reg_doutb;
   ALU32 ALU32_inst (
-      .in1(reg_douta),
-      .in2(fmt_i ? {20'b0, imm_i} : reg_doutb),
-      .funct3(funct3),
+      .in1(alu_in1),
+      .in2(alu_in2),
+      .funct3(alu_funct3),
       .funct7(fmt_r ? funct7 : 7'h00),
-      .out(reg_dinw_alu)
+      .out(alu_dinw)
   );
   //如果是计算有关的，则把计算单元输出的数据连接到写入信号
   //TODO 还有U和J没有处理
-  assign reg_dinw = (fmt_r || fmt_i) ? reg_dinw_alu : 0;
+  assign reg_dinw = (fmt_r || fmt_i) ? alu_dinw : 0;
 
 
 

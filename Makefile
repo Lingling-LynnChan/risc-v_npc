@@ -1,12 +1,14 @@
-TOP_MODULE := NPC
+TOP_MODULE  := NPC
 
-SIM_FILE := main.cpp
+SIM_FILE    := main.cpp
 
-V_HEADNAME := V$(TOP_MODULE)
+V_HEADNAME  := V$(TOP_MODULE)
 
-V_MAKEFILE := $(V_HEADNAME).mk
+V_MAKEFILE  := $(V_HEADNAME).mk
 
-V_SOURCES  := $(shell find vsrc -name "*.v")
+V_SOURCES   := $(shell find vsrc -name "*.v")
+
+XILINX_PATH := "/mnt/c/Users/Lingl/Documents/FPGA_Projects/NPC/NPC.srcs/sources_1/new/"
 
 build:
 	@echo "====================build start========================="
@@ -36,10 +38,15 @@ pull:
 	@echo "====================pull start=========================="
 	git pull origin main
 
-push:
+push: copy
 	@echo "====================push start=========================="
 	git add .
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
+
+copy:
+	@echo "====================copy start=========================="
+	find ${XILINX_PATH} -type f -delete
+	cp vsrc/* ${XILINX_PATH}
 
 all: build sim dump
