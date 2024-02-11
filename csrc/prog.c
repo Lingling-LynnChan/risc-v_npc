@@ -5,6 +5,6 @@
 #define addi(rd, rs1, imm) asmv("addi " #rd ", " #rs1 ", " #imm)
 
 void _start() {
-  addi(a1, x0, 12);
+  addi(a1, x0, 2);
   ebreak();
 }

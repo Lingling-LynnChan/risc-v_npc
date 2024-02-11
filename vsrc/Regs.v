@@ -45,7 +45,7 @@ module Regs #(
     Reg #(  //zero寄存器
         .WIDTH(WIDTH),
         .RESET_VAL(0)
-    ) inst_zero (
+    ) Reg_0 (
         .clk (clk),
         .rst (rst),
         .din (dinw),

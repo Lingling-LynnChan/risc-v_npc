@@ -53,14 +53,17 @@ int main(int argc, char **argv) {
   top->global_rst = 1;
   top->clk = 0;
   top->eval();
-  vcd->dump(main_time++);
+  vcd->dump(main_time);
+  main_time += 2;
   top->clk = 1;
   top->eval();
-  vcd->dump(main_time++);
+  vcd->dump(main_time);
+  main_time += 2;
   top->clk = 0;
   top->global_rst = 0;
   top->eval();
-  vcd->dump(main_time++);
+  vcd->dump(main_time);
+  main_time += 2;
   // 周期开始
   std::cout << "====================cycle start=========================\n";
   for (int i = 0; i < code_len; ++i) {
@@ -71,17 +74,20 @@ int main(int argc, char **argv) {
     auto inst_bin = i10to2(top->inst);
     auto inst_asm = analyze(top->inst);
     top->eval();
-    vcd->dump(main_time++);
+    vcd->dump(main_time);
+    main_time += 2;
     // 模拟时钟下降沿
     top->clk = 0;
     top->eval();
-    vcd->dump(main_time++);
+    vcd->dump(main_time);
+    main_time += 2;
     // 当周期行为
     {
       printf("0x%x", now_pc);
       std::cout << ": " << inst_asm << " " << inst_bin << std::endl;
       if (inst_asm == "ebreak") {
-        vcd->dump(main_time++);
+        vcd->dump(main_time);
+        main_time += 2;
         break;
       }
     }
