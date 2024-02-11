@@ -10,5 +10,4 @@
 !.gitignore
 !README.md
 build/
-verilator/
 .vscode/

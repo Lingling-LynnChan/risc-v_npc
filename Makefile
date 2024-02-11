@@ -10,27 +10,27 @@ V_SOURCES  := $(shell find vsrc -name "*.v")
 
 build:
 	@echo "====================build start========================="
-	rm -rf ./verilator
-	mkdir ./verilator
-	mkdir ./verilator/c_obj
+	rm -rf ./build
+	mkdir ./build
+	mkdir ./build/c_obj
 	@echo "====================compile start======================="
-	riscv64-linux-gnu-gcc -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o ./verilator/c_obj/prog ./csrc/prog.c
-	riscv64-linux-gnu-objcopy -j .text -O binary ./verilator/c_obj/prog ./verilator/c_obj/prog.bin
+	riscv64-linux-gnu-gcc -march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o build/c_obj/prog csrc/prog.c
+	riscv64-linux-gnu-objcopy -j .text -O binary build/c_obj/prog build/c_obj/prog.bin
 	@echo "====================verilator start====================="
-	verilator -Wall --trace --top-module ${TOP_MODULE} -cc ${V_SOURCES} --exe csrc/${SIM_FILE} --Mdir verilator --Wno-UNUSEDSIGNAL
-	@awk '/^CXXFLAGS =/ {print $0 " -Wno-unused-result"; found=1} !/^CXXFLAGS =/ {print $0} END {if (!found) print "CXXFLAGS = -Wno-unused-result"}' verilator/$(V_MAKEFILE) > verilator/$(V_MAKEFILE).tmp && mv verilator/$(V_MAKEFILE).tmp verilator/$(V_MAKEFILE)
+	verilator -Wall --trace --top-module ${TOP_MODULE} -cc ${V_SOURCES} --exe csrc/${SIM_FILE} --Mdir build --Wno-UNUSEDSIGNAL
+	@awk '/^CXXFLAGS =/ {print $0 " -Wno-unused-result"; found=1} !/^CXXFLAGS =/ {print $0} END {if (!found) print "CXXFLAGS = -Wno-unused-result"}' build/$(V_MAKEFILE) > build/$(V_MAKEFILE).tmp && mv build/$(V_MAKEFILE).tmp build/$(V_MAKEFILE)
 
 sim:
 	@echo "====================sim start==========================="
-	make -j -C verilator -f ${V_MAKEFILE} ${V_HEADNAME}
+	make -j -C build -f ${V_MAKEFILE} ${V_HEADNAME}
 	@echo "====================simulation start===================="
-	verilator/${V_HEADNAME} ./verilator/c_obj/prog.bin
+	build/${V_HEADNAME} build/c_obj/prog.bin
 	@echo "====================waveform start======================"
-	gtkwave verilator/trace.vcd >/dev/null 2>&1 &
+	gtkwave build/trace.vcd >/dev/null 2>&1 &
 
 dump:
 	@echo "====================dump start=========================="
-	riscv64-linux-gnu-objdump -d -M no-aliases verilator/c_obj/prog
+	riscv64-linux-gnu-objdump -d -M no-aliases build/c_obj/prog
 
 pull:
 	@echo "====================pull start=========================="

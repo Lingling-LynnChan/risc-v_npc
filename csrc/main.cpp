@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   VNPC *top = new VNPC;
   VerilatedVcdC *vcd = new VerilatedVcdC;
   top->trace(vcd, 999);
-  vcd->open("verilator/trace.vcd");
+  vcd->open("build/trace.vcd");
   // 仿真开始
   top->global_rst = 1;
   top->clk = 0;
