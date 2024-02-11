@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   main_time += 2;
   // 周期开始
   std::cout << "====================cycle start=========================\n";
-  for (int i = 0; i < code_len; ++i) {
+  for (;;) {
     // 模拟时钟上升沿
     top->clk = 1;
     top->inst = pmem_read(top->pc);
