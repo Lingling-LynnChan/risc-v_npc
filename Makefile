@@ -10,7 +10,7 @@ V_SOURCES  := $(shell find vsrc -name "*.v")
 
 build:
 	@echo "====================build start========================="
-	rm -rf ./verilator/
+	rm -rf ./verilator
 	mkdir ./verilator
 	mkdir ./verilator/c_obj
 	@echo "====================compile start======================="
