@@ -10,4 +10,5 @@
 !.gitignore
 !README.md
 build/
+ysyx/
 .vscode/
