@@ -49,6 +49,9 @@ push: copy2push
 	git add .
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
+	cd ysyx && git add .
+	cd ysyx && git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
+	cd ysyx && git push origin main
 
 copy2work:
 	@echo "====================copy start=========================="
@@ -67,7 +70,7 @@ copy2push: ysyx_clean
 	@echo "====================copy start=========================="
 	find ${XILINX_PATH} -type f -delete
 	cp vsrc/* ${XILINX_PATH}
-	rm -rf ysyx/*
+	cd ysyx && rm -rf abstract-machine am-kernels fceux-am nemu
 	cd ysyx && mkdir abstract-machine am-kernels fceux-am nemu
 	cp -a -r ../abstract-machine/* ysyx/abstract-machine
 	cp -a -r ../am-kernels/* ysyx/am-kernels

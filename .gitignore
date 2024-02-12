@@ -9,6 +9,7 @@
 !*.cpp
 !.gitignore
 !README.md
-build/
-ysyx/
 .vscode/
+build/
+**/build/
+ysyx/
