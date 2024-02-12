@@ -43,16 +43,24 @@ dump:
 pull:
 	@echo "====================pull start=========================="
 	git pull origin main
+	cp -a -r ysyx/abstract-machine/* ../abstract-machine
+	cp -a -r ysyx/am-kernels/* ../am-kernels
+	cp -a -r ysyx/fceux-am/* ../fceux-am
+	cp -a -r ysyx/nemu/* ../nemu
 
-push: sync
+push: copy2submit
 	@echo "====================push start=========================="
 	git add .
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
 
-sync:
-	@echo "====================sync start=========================="
+copy2submit:
+	@echo "====================copy start=========================="
 	find ${XILINX_PATH} -type f -delete
 	cp vsrc/* ${XILINX_PATH}
+	cp -a -r ../abstract-machine/* ysyx/abstract-machine
+	cp -a -r ../am-kernels/* ysyx/am-kernels
+	cp -a -r ../fceux-am/* ysyx/fceux-am
+	cp -a -r ../nemu/* ysyx/nemu
 
 all: build sim dump
