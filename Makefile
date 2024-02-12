@@ -44,9 +44,14 @@ pull:
 	@echo "====================pull start=========================="
 	git pull origin main
 
-pullysyx: work2ysyx
+pullysyx:
 	@echo "====================pull start=========================="
 	cd ysyx && git pull origin main
+	@echo "====================copy start=========================="
+	cp -a -r ysyx/abstract-machine/* ../abstract-machine
+	cp -a -r ysyx/am-kernels/* ../am-kernels
+	cp -a -r ysyx/fceux-am/* ../fceux-am
+	cp -a -r ysyx/nemu/* ../nemu
 
 push: copy2push
 	@echo "====================push start=========================="
@@ -54,19 +59,11 @@ push: copy2push
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
 
-pushysyx:
+pushysyx: copy2ysyx
 	@echo "====================push ysyx==========================="
 	cd ysyx && git add .
 	cd ysyx && git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	cd ysyx && git push origin main
-
-
-work2ysyx:
-	@echo "====================copy start=========================="
-	cp -a -r ysyx/abstract-machine/* ../abstract-machine
-	cp -a -r ysyx/am-kernels/* ../am-kernels
-	cp -a -r ysyx/fceux-am/* ../fceux-am
-	cp -a -r ysyx/nemu/* ../nemu
 
 ysyxclean:
 	@echo "====================clean ysyx=========================="
