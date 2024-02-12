@@ -46,12 +46,12 @@ pull:
 
 pullysyx: work2ysyx
 	@echo "====================pull start=========================="
-	cd ysyx && git pull origin
+	cd ysyx && git pull origin main
 
 push: copy2push
 	@echo "====================push start=========================="
-	git add . && \
-	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`" && \
+	git add .
+	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
 
 pushysyx:
