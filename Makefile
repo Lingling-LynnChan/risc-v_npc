@@ -40,41 +40,52 @@ dump:
 	@echo "====================dump start=========================="
 	riscv64-linux-gnu-objdump -d -M no-aliases build/c_obj/prog
 
-pull: copy2work
+pull:
 	@echo "====================pull start=========================="
 	git pull origin main
 
+pullysyx: work2ysyx
+	@echo "====================pull start=========================="
+	cd ysyx && git pull origin
+
 push: copy2push
 	@echo "====================push start=========================="
-	git add .
-	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
+	git add . && \
+	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`" && \
 	git push origin main
+
+pushysyx:
+	@echo "====================push ysyx==========================="
 	cd ysyx && git add .
 	cd ysyx && git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	cd ysyx && git push origin main
 
-copy2work:
+
+work2ysyx:
 	@echo "====================copy start=========================="
 	cp -a -r ysyx/abstract-machine/* ../abstract-machine
 	cp -a -r ysyx/am-kernels/* ../am-kernels
 	cp -a -r ysyx/fceux-am/* ../fceux-am
 	cp -a -r ysyx/nemu/* ../nemu
 
-ysyx_clean:
+ysyxclean:
 	@echo "====================clean ysyx=========================="
 	cd ../nemu && make clean
 	cd ../am-kernels/tests/cpu-tests && make clean
 	cd ../abstract-machine && make clean
 
-copy2push: ysyx_clean
+copy2ysyx: ysyxclean
 	@echo "====================copy start=========================="
-	find ${XILINX_PATH} -type f -delete
-	cp vsrc/* ${XILINX_PATH}
 	cd ysyx && rm -rf abstract-machine am-kernels fceux-am nemu
 	cd ysyx && mkdir abstract-machine am-kernels fceux-am nemu
 	cp -a -r ../abstract-machine/* ysyx/abstract-machine
 	cp -a -r ../am-kernels/* ysyx/am-kernels
 	cp -a -r ../fceux-am/* ysyx/fceux-am
 	cp -a -r ../nemu/* ysyx/nemu
+
+copy2push:
+	@echo "====================copy start=========================="
+	find ${XILINX_PATH} -type f -delete
+	cp vsrc/* ${XILINX_PATH}
 
 all: build sim dump
