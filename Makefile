@@ -40,21 +40,24 @@ dump:
 	@echo "====================dump start=========================="
 	riscv64-linux-gnu-objdump -d -M no-aliases build/c_obj/prog
 
-pull:
+pull: copy2work
 	@echo "====================pull start=========================="
 	git pull origin main
-	cp -a -r ysyx/abstract-machine/* ../abstract-machine
-	cp -a -r ysyx/am-kernels/* ../am-kernels
-	cp -a -r ysyx/fceux-am/* ../fceux-am
-	cp -a -r ysyx/nemu/* ../nemu
 
-push: copy2submit
+push: copy2push
 	@echo "====================push start=========================="
 	git add .
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	git push origin main
 
-copy2submit:
+copy2work:
+	@echo "====================copy start=========================="
+	cp -a -r ysyx/abstract-machine/* ../abstract-machine
+	cp -a -r ysyx/am-kernels/* ../am-kernels
+	cp -a -r ysyx/fceux-am/* ../fceux-am
+	cp -a -r ysyx/nemu/* ../nemu
+
+copy2push:
 	@echo "====================copy start=========================="
 	find ${XILINX_PATH} -type f -delete
 	cp vsrc/* ${XILINX_PATH}
