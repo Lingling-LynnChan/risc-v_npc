@@ -14,13 +14,13 @@ V_SOURCES   := $(shell find vsrc -name "*.v")
 
 XILINX_PATH := "/mnt/c/Users/Lingl/Documents/FPGA_Projects/NPC/NPC.srcs/sources_1/new/"
 
-clear:
-	@echo "====================clear start========================="
+clean:
+	@echo "====================clean start========================="
 	rm -rf ./build
 	mkdir ./build
 	mkdir ./build/c_obj
 
-build: clear
+build: clean
 	@echo "====================build start========================="
 	riscv64-linux-gnu-gcc -march=${USE_MARCH} -mabi=${USE_MABI} -ffreestanding -nostdlib -static -Wl,-Ttext=0 -O2 -o build/c_obj/prog csrc/prog.c
 	riscv64-linux-gnu-objcopy -j .text -O binary build/c_obj/prog build/c_obj/prog.bin
@@ -57,10 +57,18 @@ copy2work:
 	cp -a -r ysyx/fceux-am/* ../fceux-am
 	cp -a -r ysyx/nemu/* ../nemu
 
-copy2push:
+ysyx_clean:
+	@echo "====================clean ysyx=========================="
+	cd ../nemu && make clean
+	cd ../am-kernels/tests/cpu-tests && make clean
+	cd ../abstract-machine && make clean
+
+copy2push: ysyx_clean
 	@echo "====================copy start=========================="
 	find ${XILINX_PATH} -type f -delete
 	cp vsrc/* ${XILINX_PATH}
+	rm -rf ysyx/*
+	cd ysyx && mkdir abstract-machine am-kernels fceux-am nemu
 	cp -a -r ../abstract-machine/* ysyx/abstract-machine
 	cp -a -r ../am-kernels/* ysyx/am-kernels
 	cp -a -r ../fceux-am/* ysyx/fceux-am
