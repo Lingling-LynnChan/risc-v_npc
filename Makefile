@@ -44,11 +44,11 @@ pull:
 	@echo "====================pull start=========================="
 	git pull origin main
 
-pullysyx:
+ysyxpull:
 	@echo "====================pull start=========================="
 	cd .. && git pull origin main
 
-push: copy2push
+push: copy2xilinx
 	@echo "====================push start=========================="
 	git add .
 	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
@@ -60,15 +60,15 @@ ysyxclean:
 	cd ../am-kernels/tests/cpu-tests && make clean
 	cd ../abstract-machine && make clean
 
-pushysyx: ysyxclean
+ysyxpush: ysyxclean
 	@echo "====================push ysyx==========================="
 	cd .. && git add .
 	cd .. && git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	cd .. && git push origin main
 
-copy2push:
+copy2xilinx:
 	@echo "====================copy start=========================="
-	find ${XILINX_PATH} -type f -delete
+	find ${XILINX_PATH} -type f ! -iname 'FPGA_*' -delete
 	cp vsrc/* ${XILINX_PATH}
 
 all: build sim dump
