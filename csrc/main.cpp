@@ -102,6 +102,10 @@ int main(int argc, char **argv) {
   return 0;
 }
 uint32_t pmem_read(uint32_t pc) {
+  if (pc < 0x80000000 || pc >= (sizeof(ram) + 0x80000000)) {
+    printf("req mem error: 0x%08x\n", pc);
+    exit(1);
+  }
   if (pc % 4 != 0) {
     std::cout << "Unaligned pc:" << pc << std::endl;
     exit(1);
@@ -126,7 +130,8 @@ void init(int argc, char **argv) {
   code_len /= 4;
   fclose(fp);
   for (int i = 0; i < code_len; i++) {
-    std::cout << "ram[" << i << "]: " << i10to16(ram[i]) << std::endl;
+    printf("0x%08x: ", 0x80000000 + i * 4);
+    std::cout << i10to16(ram[i]) << std::endl;
   }
   std::cout << "load binary is ok\n";
 }
@@ -136,11 +141,30 @@ std::string i10to16(uint32_t i) {
   return std::string(bin);
 }
 std::string analyze(uint32_t inst) {
+  static char buf[256];
   if (inst == 0x00100073) {
     return "ebreak";
   }
   if ((inst & 0x7f) == 0x13 && ((inst >> 12) & 0x7) == 0x0) {
     return "addi";
+  }
+  if ((inst & 0x7f) == 0x6f) {
+    auto i = inst;
+    uint32_t rd_index = (((i) >> (7)) & ((1ull << ((11) - (7) + 1)) - 1));
+    uint32_t imm =
+        (({
+           struct {
+             int64_t n : 1;
+           } __x = {.n = (((i) >> (31)) & ((1ull << ((31) - (31) + 1)) - 1))};
+           (uint64_t) __x.n;
+         })
+         << 19) |
+        ((((i) >> (12)) & ((1ull << ((19) - (12) + 1)) - 1)) << 12) |
+        ((((i) >> (20)) & ((1ull << ((20) - (20) + 1)) - 1)) << 11) |
+        ((((i) >> (25)) & ((1ull << ((30) - (25) + 1)) - 1)) << 5) |
+        ((((i) >> (21)) & ((1ull << ((24) - (21) + 1)) - 1)) << 1);
+    sprintf(buf, "jal %d, %d", rd_index, imm);
+    return buf;
   }
   return "unknown inst";
 }
