@@ -21,7 +21,7 @@
 
 
 module Adder #(
-    WIDTH = 1
+    WIDTH = 32
 ) (
     input en,
     input c0,  //进位

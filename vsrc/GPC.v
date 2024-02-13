@@ -5,13 +5,13 @@
 //
 // Create Date:
 // Design Name:
-// Module Name: Reg
+// Module Name: GPC
 // Project Name:
 // Target Devices:
 // Tool Versions:
 // Description:
 //
-// Dependencies:
+// Dependencies: 
 //
 // Revision:
 // Revision 0.01 - File Created
@@ -20,18 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Reg #(
-    WIDTH = 1,
-    RESET_VAL = 0  //重置值
-) (
-    input clk,
-    input rst,
-    input [WIDTH-1:0] din,
-    input wen,  //写使能
-    output reg [WIDTH-1:0] dout
+module GPC (  //Gwen Processor Core
+    input  wire        clk,    //时钟信号
+    input  wire        rst,    //全局复位
+    input  wire [31:0] inst,   //指令
+    output wire [31:0] pc,     //程序计数器
+    output wire        ebreak
 );
-  always @(posedge clk) begin
-    if (rst) dout <= RESET_VAL;
-    else if (wen) dout <= din;
-  end
+  assign ebreak = 1;
+
 endmodule

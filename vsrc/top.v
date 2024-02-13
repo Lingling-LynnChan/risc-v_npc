@@ -5,7 +5,7 @@
 //
 // Create Date:
 // Design Name:
-// Module Name: Adder
+// Module Name: MuxMap
 // Project Name:
 // Target Devices:
 // Tool Versions:
@@ -20,15 +20,21 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module Adder #(
-    WIDTH = 1
-) (
-    input en,
-    input c0,  //进位
-    input [WIDTH-1:0] in1,
-    input [WIDTH-1:0] in2,
-    output [WIDTH-1:0] sout,  //求和
-    output cout  //进位
+module top (
+    input clk,
+    input rst,
+    output ebreak
 );
-  assign {cout, sout} = en ? (in1 + in2 + {32'b0, c0}) : 0;
+  import "DPI-C" function bit [31:0] pmem_read(input bit [31:0] addr);
+  wire [31:0] inst;
+  wire [31:0] pc;
+  GPC GPC32 (
+      .clk (clk),
+      .rst (rst),
+      .inst(inst),
+      .pc  (pc),
+      .ebreak(ebreak)
+  );
+  assign inst = pmem_read(pc);
+
 endmodule

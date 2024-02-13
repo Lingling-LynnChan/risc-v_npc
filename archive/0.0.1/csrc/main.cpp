@@ -4,7 +4,7 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
 
-#include "Vtop.h"  // 替换为顶层模块的文件名
+#include "VNPC.h"  // 替换为顶层模块的文件名
 #else
 // 欺骗代码提示，假装存在这些类
 typedef volatile uint64_t vluint64_t;
@@ -23,9 +23,11 @@ class VerilatedVcdC {
   void close() {}
   void dump(vluint64_t i) {}
 };
-struct Vtop {
+struct VNPC {
   uint32_t clk;
-  uint32_t rst;
+  uint32_t global_rst;
+  uint32_t inst;
+  uint32_t pc;
   uint32_t ebreak;
   void eval() {}
   void final() {}
@@ -33,7 +35,7 @@ struct Vtop {
 };
 #endif
 void init(int argc, char **argv);
-uint32_t pmem_read(uint32_t addr);
+uint32_t pmem_read(uint32_t pc);
 std::string i10to16(uint32_t i);
 std::string analyze(uint32_t inst);
 volatile uint32_t ram[256 * 1024 / 4];  // 256k
@@ -44,12 +46,12 @@ int main(int argc, char **argv) {
   Verilated::traceEverOn(true);
   init(argc, argv);
   // 实例化顶层模块
-  Vtop *top = new Vtop;
+  VNPC *top = new VNPC;
   VerilatedVcdC *vcd = new VerilatedVcdC;
   top->trace(vcd, 999);
   vcd->open("build/trace.vcd");
   // 仿真开始
-  top->rst = 1;
+  top->global_rst = 1;
   top->clk = 0;
   top->eval();
   vcd->dump(main_time);
@@ -59,24 +61,38 @@ int main(int argc, char **argv) {
   vcd->dump(main_time);
   main_time += 2;
   top->clk = 0;
-  top->rst = 0;
+  top->global_rst = 0;
   top->eval();
   vcd->dump(main_time);
   main_time += 2;
   // 周期开始
   std::cout << "====================cycle start=========================\n";
-  do {
-    // 时钟上升沿
+  for (;;) {
+    // 模拟时钟上升沿
     top->clk = 1;
+    top->inst = pmem_read(top->pc);
+    auto now_pc = top->pc;
+    auto inst_str = i10to16(top->inst);
+    auto inst_asm = analyze(top->inst);
     top->eval();
     vcd->dump(main_time);
     main_time += 2;
-    // 时钟下降沿
+    // 模拟时钟下降沿
     top->clk = 0;
     top->eval();
     vcd->dump(main_time);
     main_time += 2;
-  }while(top->ebreak==0);
+    // 当周期行为
+    {
+      printf("0x%x", now_pc);
+      std::cout << ": " << inst_asm << " " << inst_str << std::endl;
+      if (top->ebreak) {
+        vcd->dump(main_time);
+        main_time += 2;
+        break;
+      }
+    }
+  }
   // 周期结束
   std::cout << "====================cycle end===========================\n";
   // 释放资源

@@ -1,4 +1,4 @@
-TOP_MODULE  := GPC
+TOP_MODULE  := NPC
 
 SIM_FILE    := main.cpp
 
@@ -69,6 +69,6 @@ ysyxpush: ysyxclean
 copy2xilinx:
 	@echo "====================copy start=========================="
 	find ${XILINX_PATH} -type f ! -iname 'FPGA_*' -delete
-	rsync -av --exclude='cpp_*' vsrc/ ${XILINX_PATH}/
+	cp vsrc/* ${XILINX_PATH}
 
 all: build sim dump
