@@ -33,7 +33,9 @@ struct Vtop {
 };
 #endif
 void init(int argc, char **argv);
+extern "C" {
 uint32_t pmem_read(uint32_t addr);
+}
 std::string i10to16(uint32_t i);
 std::string analyze(uint32_t inst);
 volatile uint32_t ram[256 * 1024 / 4];  // 256k
@@ -76,7 +78,7 @@ int main(int argc, char **argv) {
     top->eval();
     vcd->dump(main_time);
     main_time += 2;
-  }while(top->ebreak==0);
+  } while (top->ebreak == 0);
   // 周期结束
   std::cout << "====================cycle end===========================\n";
   // 释放资源
@@ -85,7 +87,8 @@ int main(int argc, char **argv) {
   delete top;
   return 0;
 }
-uint32_t pmem_read(uint32_t pc) {
+extern "C" {
+extern uint32_t pmem_read(uint32_t pc) {
   if (pc < 0x80000000 || pc >= (sizeof(ram) + 0x80000000)) {
     printf("req mem error: 0x%08x\n", pc);
     exit(1);
@@ -95,6 +98,7 @@ uint32_t pmem_read(uint32_t pc) {
     exit(1);
   }
   return ram[(pc - 0x80000000) / 4];
+}
 }
 void init(int argc, char **argv) {
   if (argc < 2) {
