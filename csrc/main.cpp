@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   VerilatedVcdC *vcd = new VerilatedVcdC;
   top->trace(vcd, 999);
   vcd->open("build/trace.vcd");
-  // 仿真开始
+  // 仿真开始//inital??
   top->rst = 1;
   top->clk = 0;
   top->eval();
