@@ -1,4 +1,4 @@
-TOP_MODULE  := GPC
+TOP_MODULE  := top
 
 SIM_FILE    := main.cpp
 

@@ -11,8 +11,8 @@
 // Tool Versions:
 // Description:
 //
-// Dependencies: x删除字符 dd删除行 yy复制行 p/P粘贴到下/上方 o/O插入新行到下/上方 u 撤回
-// ngg转到行 0nl(n|)跳转列 n[enter]偏移行 nl偏移列
+// Dependencies:
+//
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
@@ -27,6 +27,7 @@ module GPC (  //Gwen Processor Core
     output wire [31:0] pc,
     output wire        ebreak
 );
-
+  assign pc = 32'h80000000;
+  assign ebreak = 1;
 
 endmodule
