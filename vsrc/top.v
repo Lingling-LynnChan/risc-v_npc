@@ -5,7 +5,7 @@ module top (
     input  wire rst,
     output wire ebreak
 );
-  wire [31:0] inst;
+  reg [31:0] inst;
   wire [31:0] pc;
   import "DPI-C" function bit [31:0] pmem_read(input bit [31:0] addr);
   assign inst = pmem_read(pc);
