@@ -5,9 +5,10 @@ module top (
     input  wire rst,
     output wire ebreak
 );
-  import "DPI-C" function bit [31:0] pmem_read(input bit [31:0] addr);
   wire [31:0] inst;
   wire [31:0] pc;
+  import "DPI-C" function bit [31:0] pmem_read(input bit [31:0] addr);
+  assign inst = pmem_read(pc);
   GPC GPC_inst (
       .clk(clk),
       .rst(rst),
@@ -15,6 +16,5 @@ module top (
       .pc(pc),
       .ebreak(ebreak)
   );
-  assign inst = pmem_read(pc);
 
 endmodule
