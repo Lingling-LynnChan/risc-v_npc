@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
   VerilatedVcdC *vcd = new VerilatedVcdC;
   top->trace(vcd, 999);
   vcd->open("build/trace.vcd");
-  // 仿真开始//inital??
+  // 仿真开始
+  //初始化拉高并维持一个周期
   top->rst = 1;
   top->clk = 0;
   top->eval();
@@ -60,6 +61,7 @@ int main(int argc, char **argv) {
   top->eval();
   vcd->dump(main_time);
   main_time += 2;
+  //拉低信号
   top->clk = 0;
   top->rst = 0;
   top->eval();
