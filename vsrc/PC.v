@@ -21,8 +21,8 @@
 
 
 module PC #(  //Program Counter
-    START_ADDR = 0
-) (  //一个指令周期结束时, inst_clk拉高，尝试读取下一条指令
+    START_ADDR = 32'h80000000
+) (
     input wire clk,
     input wire rst,
     input wire set_pc,
