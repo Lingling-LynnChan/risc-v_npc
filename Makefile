@@ -48,27 +48,27 @@ ysyxpull:
 	@echo "====================pull start=========================="
 	cd .. && git pull origin main
 
-push: copy2xilinx
-	@echo "====================push start=========================="
-	git add .
-	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
-	git push origin main
-
-ysyxclean:
-	@echo "====================clean ysyx=========================="
-	cd ../nemu && make clean
-	cd ../am-kernels/tests/cpu-tests && make clean
-	cd ../abstract-machine && make clean
-
 ysyxpush: ysyxclean
 	@echo "====================push ysyx==========================="
 	cd .. && git add .
 	cd .. && git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
 	cd .. && git push origin main
 
+push: copy2xilinx
+	@echo "====================push start=========================="
+	git add .
+	git commit -m "update `date +'%Y-%m-%d %H:%M:%S'`"
+	git push origin main
+
 copy2xilinx:
 	@echo "====================copy start=========================="
 	find ${XILINX_PATH} -type f ! -iname 'FPGA_*' -delete
 	rsync -av --exclude='cpp_*' vsrc/ ${XILINX_PATH}/
+
+ysyxclean:
+	@echo "====================clean ysyx=========================="
+	cd ../nemu && make clean
+	cd ../am-kernels/tests/cpu-tests && make clean
+	cd ../abstract-machine && make clean
 
 all: build sim dump
