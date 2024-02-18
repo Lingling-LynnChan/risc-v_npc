@@ -72,3 +72,4 @@ copy2xilinx:
 	cp vsrc/* ${XILINX_PATH}
 
 all: build sim dump
+
