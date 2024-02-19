@@ -8,6 +8,7 @@
 !*.cc
 !*.cpp
 !.gitignore
+!task.inf
 !README.md
 .vscode/
 build/
